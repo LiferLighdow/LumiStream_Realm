@@ -249,7 +249,7 @@ body {
 
 /* 側邊欄基礎樣式 */
 #sidebar {
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border-width 0.3s ease-in-out; /* 添加 padding 和 border-width 到過渡效果 */
     flex-shrink: 0; /* 在 flex 容器中預防收縮 */
     overflow-x: hidden; /* 當寬度很小時隱藏內容 */
 }
@@ -265,6 +265,8 @@ body {
         width: 16rem; /* 手機側邊欄的完整寬度 */
         z-index: 40; /* 在主內容上方 */
         transform: translateX(-100%); /* 預設在手機上隱藏 */
+        padding: 1rem; /* 確保有內邊距 */
+        border-width: 1px; /* 確保有邊框 */
     }
     #sidebar:not(.collapsed) { /* 展開時 */
         transform: translateX(0);
@@ -280,9 +282,13 @@ body {
         width: 16rem; /* 預設寬度 */
         transform: translateX(0); /* 預設可見 */
         z-index: 10;
+        padding: 1rem; /* 確保有內邊距 */
+        border-width: 1px; /* 確保有邊框 */
     }
     #sidebar.collapsed { /* 收合時寬度變為 0 */
         width: 0;
+        padding: 0; /* 移除內邊距 */
+        border-width: 0; /* 移除邊框 */
         transform: translateX(-100%); /* 確保完全移出畫面 */
     }
 }
@@ -297,6 +303,14 @@ body {
     z-index: 40 !important; /* 更高的 z-index 以浮動 */
     transform: translateX(-100%) !important; /* 始終從隱藏狀態開始 */
     transition: transform 0.3s ease-in-out !important; /* 僅 transform 用於過渡 */
+    padding: 1rem !important; /* 確保有內邊距 */
+    border-width: 1px !important; /* 確保有邊框 */
+}
+
+.video-page-sidebar-floating.collapsed {
+    transform: translateX(-100%) !important;
+    /* 在浮動模式下，如果需要完全隱藏，也可以考慮設置 width: 0, padding: 0, border-width: 0 */
+    /* 但通常 transform 已經足夠將其移出可視區域 */
 }
 
 .video-page-sidebar-floating:not(.collapsed) {
