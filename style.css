@@ -249,44 +249,77 @@ body {
 
 /* 側邊欄基礎樣式 */
 #sidebar {
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; /* 添加 width 到過渡效果 */
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
     flex-shrink: 0; /* 在 flex 容器中預防收縮 */
     overflow-x: hidden; /* 當寬度很小時隱藏內容 */
 }
 
-/* 小螢幕樣式 (預設) */
-/* 側邊欄固定定位並疊加在內容上方 */
-@media (max-width: 1023px) { /* 僅在小螢幕上應用固定定位 */
+/* 首頁側邊欄行為 (默認行為) */
+/* 小螢幕 (max-width: 1023px) - 浮動 */
+@media (max-width: 1023px) {
     #sidebar {
         position: fixed;
-        top: 64px; /* 導航欄高度 */
+        top: 64px;
         left: 0;
         height: calc(100vh - 64px);
         width: 16rem; /* 手機側邊欄的完整寬度 */
         z-index: 40; /* 在主內容上方 */
         transform: translateX(-100%); /* 預設在手機上隱藏 */
     }
-
-    #sidebar:not(.collapsed) { /* 在手機上展開時 */
+    #sidebar:not(.collapsed) { /* 展開時 */
         transform: translateX(0);
     }
 }
 
-/* 桌面樣式 (lg 斷點及以上) */
+/* 桌面 (min-width: 1024px) - 推擠內容 */
 @media (min-width: 1024px) {
     #sidebar {
-        position: sticky; /* 在桌面上使用 sticky 定位 */
-        top: 64px; /* 與導航欄對齊 */
+        position: sticky;
+        top: 64px;
         height: calc(100vh - 64px);
-        width: 16rem; /* 桌面側邊欄的預設寬度 */
-        transform: translateX(0); /* 在桌面上始終可見 */
-        z-index: 10; /* 正常流動的較低 z-index */
+        width: 16rem; /* 預設寬度 */
+        transform: translateX(0); /* 預設可見 */
+        z-index: 10;
     }
+    #sidebar.collapsed { /* 收合時寬度變為 0 */
+        width: 0;
+        transform: translateX(-100%); /* 確保完全移出畫面 */
+    }
+}
 
-    #sidebar.collapsed {
-        width: 0; /* 收合時寬度變為 0 */
-        /* 寬度為 0 時不需要視覺上的 transform */
-    }
+/* 影片播放頁面側邊欄行為 (始終浮動) */
+.video-page-sidebar-floating {
+    position: fixed !important; /* 覆蓋 sticky/static */
+    top: 64px !important;
+    left: 0 !important;
+    height: calc(100vh - 64px) !important;
+    width: 16rem !important; /* 固定寬度 */
+    z-index: 40 !important; /* 更高的 z-index 以浮動 */
+    transform: translateX(-100%) !important; /* 始終從隱藏狀態開始 */
+    transition: transform 0.3s ease-in-out !important; /* 僅 transform 用於過渡 */
+}
+
+.video-page-sidebar-floating:not(.collapsed) {
+    transform: translateX(0%) !important;
+}
+
+/* 半透明黑色遮罩樣式 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+    z-index: 30; /* 介於主內容和側邊欄之間 */
+    display: none; /* 預設隱藏 */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.overlay.show {
+    display: block;
+    opacity: 1;
 }
 
 /* 影片播放器容器的固定比例 */

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mainContent = document.getElementById('main-content'); // Main content area for closing sidebar
     const messageBox = document.getElementById('message-box');
     const loadingOverlay = document.getElementById('loading-overlay');
+    const overlay = document.getElementById('overlay'); // Get the new overlay element
 
     let currentLang = 'en'; // Default language
 
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Final check: Language submenu element:', languageSubmenu);
     console.log('Final check: Video player container:', videoPlayerContainer);
     console.log('Final check: Related videos grid:', relatedVideosGrid);
+    console.log('Final check: Overlay element:', overlay);
 
 
     // Explicitly ensure the account menu and language submenu are hidden on load
@@ -85,15 +87,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('Language submenu hidden on load. languageSubmenu:', languageSubmenu);
     }
 
-    // Initialize sidebar state based on screen width
+    // Initialize sidebar state for video playback page: always collapsed and floating
     if (sidebar) {
-        if (window.innerWidth < 1024) { // On smaller screens, start collapsed
-            sidebar.classList.add('collapsed');
-            console.log('Sidebar initialized as collapsed on mobile.');
-        } else { // On larger screens, start expanded
-            sidebar.classList.remove('collapsed');
-            console.log('Sidebar initialized as expanded on desktop.');
-        }
+        sidebar.classList.add('collapsed', 'video-page-sidebar-floating');
+        console.log('Sidebar initialized as collapsed and floating on video page.');
     }
 
 
@@ -148,25 +145,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Sidebar toggle function
-    if (sidebarToggle && sidebar) {
+    if (sidebarToggle && sidebar && overlay) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
+            overlay.classList.toggle('show');
         });
     } else {
-        console.error(`Sidebar toggle button (${sidebarToggle}) or sidebar element (${sidebar}) not found. Cannot attach sidebar toggle listener.`);
+        console.error(`Sidebar toggle button (${sidebarToggle}), sidebar element (${sidebar}), or overlay (${overlay}) not found. Cannot attach sidebar toggle listener.`);
     }
 
 
-    // Close sidebar when clicking main content area (mobile only)
-    if (mainContent && sidebar) {
+    // Close sidebar when clicking main content area (mobile only) or overlay
+    if (mainContent && sidebar && overlay) {
         mainContent.addEventListener('click', () => {
-            // Only close if sidebar is currently open and on mobile size
-            if (window.innerWidth < 1024 && !sidebar.classList.contains('collapsed')) {
+            // Only close if sidebar is currently open
+            if (!sidebar.classList.contains('collapsed')) {
                 sidebar.classList.add('collapsed');
+                overlay.classList.remove('show');
+            }
+        });
+        overlay.addEventListener('click', () => {
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+                overlay.classList.remove('show');
             }
         });
     } else {
-        console.error(`Main content area (${mainContent}) or sidebar element (${sidebar}) not found. Cannot attach main click listener.`);
+        console.error(`Main content area (${mainContent}), sidebar element (${sidebar}), or overlay (${overlay}) not found. Cannot attach main/overlay click listener.`);
     }
 
     /**
