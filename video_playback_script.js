@@ -414,7 +414,59 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (videoElement) {
                 videoElement.src = video.videoUrl; // Use videoUrl for custom player
                 videoElement.load(); // Load the new video
-                // Do NOT play immediately. Wait for the loading overlay to be removed.
+                videoElement.pause(); // 確保影片一開始是暫停的
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // 顯示播放圖示
+
+                // 使用 Promise 等待載入遮罩消失和影片準備就緒
+                const waitForOverlayAndVideo = new Promise(resolve => {
+                    let overlayTransitionDone = false;
+                    let videoCanPlay = false;
+
+                    const checkAndResolve = () => {
+                        if (overlayTransitionDone && videoCanPlay) {
+                            resolve();
+                        }
+                    };
+
+                    // 監聽載入遮罩的過渡結束事件
+                    const handleOverlayTransitionEnd = () => {
+                        loadingOverlay.removeEventListener('transitionend', handleOverlayTransitionEnd);
+                        overlayTransitionDone = true;
+                        checkAndResolve();
+                    };
+
+                    // 監聽影片的 canplay 事件（表示影片已載入足夠數據可以播放）
+                    const handleVideoCanPlay = () => {
+                        videoElement.removeEventListener('canplay', handleVideoCanPlay);
+                        videoCanPlay = true;
+                        checkAndResolve();
+                    };
+
+                    if (loadingOverlay) {
+                        loadingOverlay.addEventListener('transitionend', handleOverlayTransitionEnd);
+                        // 如果遮罩在腳本運行前已經是隱藏狀態，則直接標記為已完成
+                        if (!loadingOverlay.classList.contains('show') && loadingOverlay.style.visibility === 'hidden') {
+                             overlayTransitionDone = true;
+                        }
+                    } else {
+                        // 如果沒有載入遮罩元素，則直接標記為已完成
+                        overlayTransitionDone = true;
+                    }
+
+                    videoElement.addEventListener('canplay', handleVideoCanPlay);
+                    // 如果影片在腳本運行前已經是 canplay 狀態，則直接標記為已完成
+                    if (videoElement.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+                        videoCanPlay = true;
+                    }
+                    checkAndResolve(); // 初始檢查，以防事件在監聽器設置前已經發生
+                });
+
+                waitForOverlayAndVideo.then(() => {
+                    // 載入遮罩已隱藏且影片已準備好，現在可以播放
+                    videoElement.play();
+                    playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // 更新為暫停圖示
+                });
+
             }
             if (videoTitleElement) videoTitleElement.textContent = video.title;
             // Update the document title (browser tab title)
@@ -459,25 +511,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error(`Video with ID ${videoId} not found.`);
         }
 
-        // Hide loading overlay and then play the video
+        // 隱藏載入遮罩
         if (loadingOverlay) {
-            // Add a one-time event listener for when the transition ends
-            const handleTransitionEnd = () => {
-                loadingOverlay.removeEventListener('transitionend', handleTransitionEnd); // Remove listener
-                // Only play if a video was found and loaded
-                if (video && videoElement) {
-                    videoElement.play();
-                    playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Ensure play icon is updated
-                }
-            };
-            loadingOverlay.addEventListener('transitionend', handleTransitionEnd);
-            loadingOverlay.classList.remove('show'); // Trigger the transition
-        } else {
-            // Fallback if loadingOverlay doesn't exist (shouldn't happen with current setup)
-            if (video && videoElement) {
-                videoElement.play();
-                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
-            }
+            loadingOverlay.classList.remove('show');
         }
     }
 
