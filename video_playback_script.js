@@ -162,9 +162,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadVideoDetails(currentVideoId);
         await renderRelatedVideos(currentVideoId);
 
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('show'); // 隱藏載入遮罩
-        }
+        // Note: loadingOverlay.classList.remove('show') is now handled inside loadVideoDetails
+        // after the video is ready to play.
     }
 
     // Sidebar toggle function
@@ -380,7 +379,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch?id=${newVideoId}`);
+            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -389,7 +388,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             currentVideoIndex = (currentVideoIndex + 1) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch?id=${newVideoId}`);
+            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -415,8 +414,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (videoElement) {
                 videoElement.src = video.videoUrl; // Use videoUrl for custom player
                 videoElement.load(); // Load the new video
-                videoElement.play(); // Auto-play the new video
-                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Update play/pause icon
+                // Do NOT play immediately. Wait for the loading overlay to be removed.
             }
             if (videoTitleElement) videoTitleElement.textContent = video.title;
             // Update the document title (browser tab title)
@@ -460,8 +458,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (videoDescriptionElement) videoDescriptionElement.textContent = '';
             console.error(`Video with ID ${videoId} not found.`);
         }
+
+        // Hide loading overlay and then play the video
         if (loadingOverlay) {
-            loadingOverlay.classList.remove('show'); // 隱藏載入遮罩
+            loadingOverlay.classList.remove('show');
+            // Only play if a video was found and loaded
+            if (video && videoElement) {
+                videoElement.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Ensure play icon is updated
+            }
         }
     }
 
@@ -497,7 +502,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         videoCard.addEventListener('click', async () => {
             // 點擊相關影片時載入新影片
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch?id=${video.id}`);
+            window.history.pushState({}, '', `watch.html?id=${video.id}`);
             await loadVideoDetails(video.id);
             await renderRelatedVideos(video.id);
             // 滾動到頁面頂部
