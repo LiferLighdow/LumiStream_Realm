@@ -68,7 +68,16 @@
                 <!-- 左側：影片播放器及詳細資訊 -->
                 <section class="flex-1">
                     <div id="custom-video-player" class="video-player-container group relative">
-                        <video id="video-element" class="w-full h-full object-cover rounded-xl" controlsList="nodownload nofullscreen noremoteplayback"></video>
+                        <!-- YouTube IFrame Player -->
+                        <!-- controls=0: 隱藏原生控制項 -->
+                        <!-- modestbranding=1: 顯示較精簡的 YouTube 品牌標識 -->
+                        <!-- rel=0: 影片結束時不顯示相關影片 (只顯示來自同一頻道的影片) -->
+                        <iframe id="youtube-player" class="w-full h-full object-cover rounded-xl"
+                                src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1&controls=0&modestbranding=1&rel=0&autoplay=0"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
 
                         <!-- Custom Controls -->
                         <div class="video-controls absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -206,6 +215,8 @@
     <!-- 載入遮罩將動態載入到這裡 -->
     <div id="loading-overlay-container"></div>
 
+    <!-- YouTube IFrame Player API script -->
+    <script async src="https://www.youtube.com/iframe_api"></script>
     <script type="module" src="video_playback_script.js" defer></script> <!-- 引入影片播放頁面專用 JavaScript 檔案 -->
 </body>
 </html>
