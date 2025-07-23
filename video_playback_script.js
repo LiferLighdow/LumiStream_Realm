@@ -379,7 +379,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         prevButton.addEventListener('click', async () => {
             currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
-            window.history.pushState({}, '', `video_playback.html?id=${newVideoId}`);
+            // Update URL to watch.html
+            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -387,7 +388,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         nextButton.addEventListener('click', async () => {
             currentVideoIndex = (currentVideoIndex + 1) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
-            window.history.pushState({}, '', `video_playback.html?id=${newVideoId}`);
+            // Update URL to watch.html
+            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -490,7 +492,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         videoCard.setAttribute('data-video-id', video.id);
         videoCard.addEventListener('click', async () => {
             // 點擊相關影片時載入新影片
-            window.history.pushState({}, '', `video_playback.html?id=${video.id}`); // Update URL
+            // Update URL to watch.html
+            window.history.pushState({}, '', `watch.html?id=${video.id}`);
             await loadVideoDetails(video.id);
             await renderRelatedVideos(video.id);
             // 滾動到頁面頂部

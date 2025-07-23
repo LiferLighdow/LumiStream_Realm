@@ -208,8 +208,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         videoCard.setAttribute('data-video-title', video.title);
         videoCard.setAttribute('data-video-description', video.description);
         videoCard.addEventListener('click', () => {
-            // Navigate to video playback page
-            window.location.href = `video_playback.html?id=${video.id}`;
+            // Navigate to video playback page (now watch.html)
+            window.location.href = `watch.html?id=${video.id}`;
         });
 
         // Video thumbnail
