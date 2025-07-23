@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // In a real scenario, video.videoUrl would contain the YouTube video ID or a full YouTube URL
             // For this demo, we'll map our video IDs to specific YouTube IDs for demonstration.
             let youtubeVideoId;
-            if (video.id === 'video1') youtubeVideoId = 'dQw4w9WgXcQ'; // Rick Astley
+            if (video.id === 'video1') youtubeVideoId = '0iQKI6EbrcI'; // Updated to your provided YouTube video ID
             else if (video.id === 'video2') youtubeVideoId = 'M7lc1UVf-VE'; // SpaceX Starship Launch
             else if (video.id === 'video3') youtubeVideoId = 'xvFZjo5PgG0'; // AI Explained
             else youtubeVideoId = 'dQw4w9WgXcQ'; // Default to Rick Astley for others
