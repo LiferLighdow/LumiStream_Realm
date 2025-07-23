@@ -247,34 +247,45 @@ body {
     100% { transform: scale(1.2); opacity: 1; }
 }
 
-/* 側邊欄收納樣式 */
-/* 預設在小螢幕上收合 */
-#sidebar.collapsed {
-    transform: translateX(-100%);
-}
-
-/* 側邊欄展開樣式 */
-#sidebar:not(.collapsed) {
-    transform: translateX(0);
-}
-
-/* 過渡效果 */
+/* 側邊欄基礎樣式 */
 #sidebar {
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; /* 添加 width 到過渡效果 */
+    flex-shrink: 0; /* 在 flex 容器中預防收縮 */
+    overflow-x: hidden; /* 當寬度很小時隱藏內容 */
 }
 
-/* 在大螢幕上，側邊欄預設展開，且點擊收合後仍然收合 */
-@media (min-width: 1024px) { /* Tailwind's lg breakpoint */
+/* 小螢幕樣式 (預設) */
+/* 側邊欄固定定位並疊加在內容上方 */
+@media (max-width: 1023px) { /* 僅在小螢幕上應用固定定位 */
     #sidebar {
-        /* 確保在大螢幕上始終佔據空間，即使視覺上收合 */
-        flex-shrink: 0;
-        width: 16rem; /* 256px */
+        position: fixed;
+        top: 64px; /* 導航欄高度 */
+        left: 0;
+        height: calc(100vh - 64px);
+        width: 16rem; /* 手機側邊欄的完整寬度 */
+        z-index: 40; /* 在主內容上方 */
+        transform: translateX(-100%); /* 預設在手機上隱藏 */
     }
-    #sidebar.collapsed {
-        transform: translateX(-100%);
-    }
-    #sidebar:not(.collapsed) {
+
+    #sidebar:not(.collapsed) { /* 在手機上展開時 */
         transform: translateX(0);
+    }
+}
+
+/* 桌面樣式 (lg 斷點及以上) */
+@media (min-width: 1024px) {
+    #sidebar {
+        position: sticky; /* 在桌面上使用 sticky 定位 */
+        top: 64px; /* 與導航欄對齊 */
+        height: calc(100vh - 64px);
+        width: 16rem; /* 桌面側邊欄的預設寬度 */
+        transform: translateX(0); /* 在桌面上始終可見 */
+        z-index: 10; /* 正常流動的較低 z-index */
+    }
+
+    #sidebar.collapsed {
+        width: 0; /* 收合時寬度變為 0 */
+        /* 寬度為 0 時不需要視覺上的 transform */
     }
 }
 
