@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     let loadingOverlay = null; // Will be set after loading the component
 
     // Video Player Elements (now controlling YouTube player)
-    // const videoElement = document.getElementById('video-element'); // No longer directly used for <video> tag
+    const youtubeIframe = document.getElementById('youtube-player'); // Get the YouTube iframe element
     const playPauseButton = document.getElementById('play-pause-button');
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
@@ -438,15 +438,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         if (video) {
-            // Extract YouTube video ID from the URL (assuming videoUrl is a YouTube embed URL)
-            // For now, using a placeholder YouTube ID as actual videoUrl is a generic mp4
-            // In a real scenario, video.videoUrl would contain the YouTube video ID or a full YouTube URL
-            // For this demo, we'll map our video IDs to specific YouTube IDs for demonstration.
-            let youtubeVideoId;
-            if (video.id === 'video1') youtubeVideoId = '0iQKI6EbrcI'; // Updated to your provided YouTube video ID
-            else if (video.id === 'video2') youtubeVideoId = 'M7lc1UVf-VE'; // SpaceX Starship Launch
-            else if (video.id === 'video3') youtubeVideoId = 'xvFZjo5PgG0'; // AI Explained
-            else youtubeVideoId = 'dQw4w9WgXcQ'; // Default to Rick Astley for others
+            const youtubeVideoId = video.youtubeId; // Directly use youtubeId from videos.js
 
             if (player) {
                 // Load the new YouTube video
@@ -480,7 +472,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const handlePlayerStateChange = (event) => {
                         if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING) {
                             youtubePlayerReadyToPlay = true;
-                            player.removeEventListener('onStateChange', handlePlayerStateChange); // Remove listener after first play
+                            // player.removeEventListener('onStateChange', handlePlayerStateChange); // Remove listener after first play
+                            checkAndResolve();
+                        } else if (event.data === YT.PlayerState.CUED) {
+                            // If video is cued, it's ready to be played programmatically
+                            youtubePlayerReadyToPlay = true;
                             checkAndResolve();
                         }
                     };
@@ -490,7 +486,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         player.addEventListener('onStateChange', handlePlayerStateChange);
                         // Also check initial state if already playing/buffering (e.g., if autoplay worked)
                         const initialState = player.getPlayerState();
-                        if (initialState === YT.PlayerState.PLAYING || initialState === YT.PlayerState.BUFFERING) {
+                        if (initialState === YT.PlayerState.PLAYING || initialState === YT.PlayerState.BUFFERING || initialState === YT.PlayerState.CUED) {
                             youtubePlayerReadyToPlay = true;
                         }
                     } else {
