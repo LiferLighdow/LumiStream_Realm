@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
+            window.history.pushState({}, '', `watch?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             currentVideoIndex = (currentVideoIndex + 1) % videos.length;
             const newVideoId = videos[currentVideoIndex].id;
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
+            window.history.pushState({}, '', `watch?id=${newVideoId}`);
             await loadVideoDetails(newVideoId);
             await renderRelatedVideos(newVideoId);
         });
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         videoCard.addEventListener('click', async () => {
             // 點擊相關影片時載入新影片
             // Update URL to watch.html
-            window.history.pushState({}, '', `watch.html?id=${video.id}`);
+            window.history.pushState({}, '', `watch?id=${video.id}`);
             await loadVideoDetails(video.id);
             await renderRelatedVideos(video.id);
             // 滾動到頁面頂部
