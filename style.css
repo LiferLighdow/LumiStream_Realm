@@ -248,13 +248,32 @@ body {
 }
 
 /* 側邊欄收納樣式 */
-/* 預設在小螢幕上隱藏 */
-#sidebar.hidden-mobile {
+/* 預設在小螢幕上收合 */
+#sidebar.collapsed {
     transform: translateX(-100%);
 }
-/* 在大螢幕上始終顯示 */
+
+/* 側邊欄展開樣式 */
+#sidebar:not(.collapsed) {
+    transform: translateX(0);
+}
+
+/* 過渡效果 */
+#sidebar {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 在大螢幕上，側邊欄預設展開，且點擊收合後仍然收合 */
 @media (min-width: 1024px) { /* Tailwind's lg breakpoint */
-    #sidebar.hidden-mobile {
-        transform: translateX(0); /* 在大螢幕上覆蓋隱藏效果 */
+    #sidebar {
+        /* 確保在大螢幕上始終佔據空間，即使視覺上收合 */
+        flex-shrink: 0;
+        width: 16rem; /* 256px */
+    }
+    #sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+    #sidebar:not(.collapsed) {
+        transform: translateX(0);
     }
 }
