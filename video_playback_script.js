@@ -1,19 +1,11 @@
 import { videos } from './data/videos.js'; // 從獨立檔案引入影片資料
 import { translations } from './data/translations.js'; // 從獨立檔案引入翻譯資料
 
-// Declare YouTube player variable globally so it can be accessed by onYouTubeIframeAPIReady
-let player;
-let youtubePlayerReady = false; // Flag to check if YouTube player is ready
+// Removed YouTube player variable and onYouTubeIframeAPIReady as we're not using the API directly
+// let player;
+// let youtubePlayerReady = false;
 
-// This function is called by the YouTube IFrame Player API when it's ready
-window.onYouTubeIframeAPIReady = () => {
-    youtubePlayerReady = true;
-    console.log("YouTube IFrame Player API is ready.");
-    // If the DOM is already loaded, trigger initial video load
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initializeVideoPlayer();
-    }
-};
+// Removed onYouTubeIframeAPIReady function
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Get DOM elements
@@ -26,26 +18,28 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let loadingOverlay = null; // Will be set after loading the component
 
-    // Video Player Elements (now controlling YouTube player)
+    // Video Player Elements (now controlling YouTube iframe src directly)
     const youtubeIframe = document.getElementById('youtube-player'); // Get the YouTube iframe element
-    const playPauseButton = document.getElementById('play-pause-button');
-    const prevButton = document.getElementById('prev-button');
-    const nextButton = document.getElementById('next-button');
-    const volumeButton = document.getElementById('volume-button');
-    const volumeSlider = document.getElementById('volume-slider');
-    const progressBarContainer = document.getElementById('progress-bar-container');
-    const progressBar = document.getElementById('progress-bar');
-    const progressHandle = document.getElementById('progress-handle');
-    const currentTimeElement = document.getElementById('current-time');
-    const durationElement = document.getElementById('duration');
-    const captionsButton = document.getElementById('captions-button');
-    const settingsButton = document.getElementById('settings-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
+    // Removed custom control elements as they are no longer needed
+    // const playPauseButton = document.getElementById('play-pause-button');
+    // const prevButton = document.getElementById('prev-button');
+    // const nextButton = document.getElementById('next-button');
+    // const volumeButton = document.getElementById('volume-button');
+    // const volumeSlider = document.getElementById('volume-slider');
+    // const progressBarContainer = document.getElementById('progress-bar-container');
+    // const progressBar = document.getElementById('progress-bar');
+    // const progressHandle = document.getElementById('progress-handle');
+    // const currentTimeElement = document.getElementById('current-time');
+    // const durationElement = document.getElementById('duration');
+    // const captionsButton = document.getElementById('captions-button');
+    // const settingsButton = document.getElementById('settings-button');
+    // const fullscreenButton = document.getElementById('fullscreen-button');
     const customVideoPlayer = document.getElementById('custom-video-player'); // The container for the video and its controls
 
     let currentLang = 'en'; // Default language
-    let isDraggingProgressBar = false; // Flag for progress bar dragging
-    let intervalId; // For time update interval
+    // Removed isDraggingProgressBar and intervalId as they are for custom controls
+    // let isDraggingProgressBar = false;
+    // let intervalId;
 
     // Function to load HTML components dynamically
     async function loadComponent(container, filePath) {
@@ -168,21 +162,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
 
-        // 重新載入影片詳細資訊和相關影片以應用新語言
-        // This will be handled by initializeVideoPlayer or subsequent loadVideoDetails calls
-        // after YouTube API is ready.
+        // Re-load video details and related videos to apply new language
         const urlParams = new URLSearchParams(window.location.search);
         const videoIdFromUrl = urlParams.get('id');
-        const currentVideoId = videoIdFromUrl || videos[0].id; // 預設載入第一個影片
+        const currentVideoId = videoIdFromUrl || videos[0].id; // Default to first video
 
-        // Only call loadVideoDetails if player is already initialized
-        if (player) {
-            await loadVideoDetails(currentVideoId);
-            await renderRelatedVideos(currentVideoId);
+        await loadVideoDetails(currentVideoId);
+        await renderRelatedVideos(currentVideoId);
+
+        // Hide loading overlay after translations and content load
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('show');
         }
-
-        // Note: loadingOverlay.classList.remove('show') is now handled inside loadVideoDetails
-        // after the video is ready to play.
     }
 
     // Sidebar toggle function
@@ -244,181 +235,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    /**
-     * Formats time in HH:MM:SS or MM:SS format.
-     * @param {number} seconds - The time in seconds.
-     * @returns {string} Formatted time string.
-     */
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60);
-        const pad = (num) => String(num).padStart(2, '0');
-        if (h > 0) {
-            return `${pad(h)}:${pad(m)}:${pad(s)}`;
-        }
-        return `${pad(m)}:${pad(s)}`;
-    }
+    // Removed formatTime function as it's for custom controls
 
-    // --- Video Player Controls Logic ---
+    // Removed all custom video player control logic (Play/Pause, Volume, Progress Bar, Fullscreen, Captions, Settings)
+    // as we are now using the default YouTube iframe.
 
-    // Play/Pause Toggle
-    if (playPauseButton) {
-        playPauseButton.addEventListener('click', () => {
-            if (!player) return;
-            const playerState = player.getPlayerState();
-            if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-            }
-        });
-    }
-
-    // Volume Control
-    if (volumeSlider && volumeButton) {
-        volumeSlider.addEventListener('input', () => {
-            if (!player) return;
-            player.setVolume(volumeSlider.value * 100); // YouTube API uses 0-100
-            updateVolumeIcon(player.getVolume());
-        });
-
-        volumeButton.addEventListener('click', () => {
-            if (!player) return;
-            if (player.isMuted()) {
-                player.unMute();
-                updateVolumeIcon(player.getVolume());
-            } else {
-                player.mute();
-                volumeButton.innerHTML = '<i class="fas fa-volume-mute"></i>';
-            }
-        });
-
-        function updateVolumeIcon(volume) {
-            if (player.isMuted() || volume === 0) {
-                volumeButton.innerHTML = '<i class="fas fa-volume-mute"></i>';
-            } else if (volume < 50) {
-                volumeButton.innerHTML = '<i class="fas fa-volume-down"></i>';
-            } else {
-                volumeButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-            }
-        }
-    }
-
-    // Progress Bar
-    if (progressBarContainer && progressBar && progressHandle && currentTimeElement && durationElement) {
-        progressBarContainer.addEventListener('mousedown', (e) => {
-            if (!player) return;
-            isDraggingProgressBar = true;
-            player.pauseVideo(); // Pause while dragging
-            updateProgressBar(e);
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDraggingProgressBar) {
-                updateProgressBar(e);
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDraggingProgressBar) {
-                isDraggingProgressBar = false;
-                player.playVideo(); // Resume play after dragging
-            }
-        });
-
-        function updateProgressBar(e) {
-            const rect = progressBarContainer.getBoundingClientRect();
-            let clickX = e.clientX - rect.left;
-            if (clickX < 0) clickX = 0;
-            if (clickX > rect.width) clickX = rect.width;
-
-            const newTime = (clickX / rect.width) * player.getDuration();
-            player.seekTo(newTime, true); // Seek to new time
-
-            const progress = (newTime / player.getDuration()) * 100;
-            progressBar.style.width = `${progress}%`;
-            progressHandle.style.left = `${progress}%`;
-            currentTimeElement.textContent = formatTime(newTime);
-        }
-    }
-
-    // Fullscreen Toggle
-    if (fullscreenButton && customVideoPlayer) {
-        fullscreenButton.addEventListener('click', () => {
-            if (!player) return;
-            // YouTube API has its own fullscreen method
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
-            } else {
-                // Request fullscreen for the iframe's parent container
-                // Note: This makes the *entire iframe* fullscreen, not just the video within it.
-                // YouTube API's requestFullscreen is usually for the player itself.
-                // For YouTube, it's often better to let the native fullscreen handle it,
-                // but since we hide controls, we'll try to trigger the iframe's fullscreen.
-                if (customVideoPlayer.requestFullscreen) {
-                    customVideoPlayer.requestFullscreen();
-                } else if (customVideoPlayer.mozRequestFullScreen) { /* Firefox */
-                    customVideoPlayer.mozRequestFullScreen();
-                } else if (customVideoPlayer.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                    customVideoPlayer.webkitRequestFullscreen();
-                } else if (customVideoPlayer.msRequestFullscreen) { /* IE/Edge */
-                    customVideoPlayer.msRequestFullscreen();
-                }
-                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
-            }
-        });
-
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
-            } else {
-                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
-            }
-        });
-    }
-
-    // Captions Toggle (Placeholder functionality)
-    if (captionsButton) {
-        captionsButton.addEventListener('click', async () => {
-            if (!player) return;
-            // YouTube API has methods for captions: player.getOptions('captions'), player.setOption('captions', 'track', {languageCode: 'en'})
-            await showMessage('message_clicked', { clicked_item: 'Captions Toggle' });
-            console.log("Captions toggle clicked. (Placeholder - real caption logic needed)");
-        });
-    }
-
-    // Settings Button (Placeholder functionality)
-    if (settingsButton) {
-        settingsButton.addEventListener('click', async () => {
-            await showMessage('message_clicked', { clicked_item: 'Settings' });
-            console.log("Settings button clicked. (Placeholder - real settings logic needed)");
-        });
-    }
-
-    // Previous/Next Video Logic
+    // Previous/Next Video Logic (simplified to just load new video details)
     let currentVideoIndex = 0; // Track the index of the currently playing video
 
-    if (prevButton && nextButton) {
-        prevButton.addEventListener('click', async () => {
-            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
-            const newVideoId = videos[currentVideoIndex].id;
-            // Update URL to watch.html
-            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
-            await loadVideoDetails(newVideoId);
-            await renderRelatedVideos(newVideoId);
-        });
+    // These buttons are removed from HTML, so this block might become unreachable.
+    // Keeping it for now in case the user wants to re-add them for general navigation.
+    // if (prevButton && nextButton) { // These elements no longer exist
+    //     prevButton.addEventListener('click', async () => {
+    //         currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+    //         const newVideoId = videos[currentVideoIndex].id;
+    //         window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
+    //         await loadVideoDetails(newVideoId);
+    //         await renderRelatedVideos(newVideoId);
+    //     });
 
-        nextButton.addEventListener('click', async () => {
-            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-            const newVideoId = videos[currentVideoIndex].id;
-            // Update URL to watch.html
-            window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
-            await loadVideoDetails(newVideoId);
-            await renderRelatedVideos(newVideoId);
-        });
-    }
+    //     nextButton.addEventListener('click', async () => {
+    //         currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+    //         const newVideoId = videos[currentVideoIndex].id;
+    //         window.history.pushState({}, '', `watch.html?id=${newVideoId}`);
+    //         await loadVideoDetails(newVideoId);
+    //         await renderRelatedVideos(newVideoId);
+    //     });
+    // }
 
     /**
      * Loads details for a specific video and updates the player.
@@ -440,86 +283,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (video) {
             const youtubeVideoId = video.youtubeId; // Directly use youtubeId from videos.js
 
-            if (player) {
-                // Load the new YouTube video. Do NOT call player.pauseVideo() immediately here.
-                // Let the player load and reach its initial state (usually CUED or PAUSED).
-                player.loadVideoById(youtubeVideoId);
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Ensure play icon is shown initially
-
-                // Use Promise to wait for loading overlay transition and YouTube player readiness
-                const waitForOverlayAndVideo = new Promise(resolve => {
-                    let overlayTransitionDone = false;
-                    let youtubePlayerLoadedAndReady = false; // Renamed for clarity
-
-                    const checkAndResolve = () => {
-                        if (overlayTransitionDone && youtubePlayerLoadedAndReady) {
-                            resolve();
-                        }
-                    };
-
-                    // Listen for loading overlay's transition end
-                    const handleOverlayTransitionEnd = () => {
-                        if (loadingOverlay) {
-                            loadingOverlay.removeEventListener('transitionend', handleOverlayTransitionEnd);
-                        }
-                        overlayTransitionDone = true;
-                        checkAndResolve();
-                    };
-
-                    // Listen for YouTube player state change to CUED or PAUSED (after loading)
-                    const handlePlayerStateChangeForLoad = (event) => {
-                        // YT.PlayerState.CUED (5): The video is loaded and ready to play.
-                        // YT.PlayerState.PAUSED (2): The video is paused. This might be the state after loading if autoplay is off.
-                        // YT.PlayerState.PLAYING (1): If it starts playing immediately (e.g., muted autoplay).
-                        // YT.PlayerState.BUFFERING (3): If it's buffering before playing.
-                        if (event.data === YT.PlayerState.CUED || event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING) {
-                            youtubePlayerLoadedAndReady = true;
-                            // Remove this specific listener to avoid multiple resolves for the same load event
-                            player.removeEventListener('onStateChange', handlePlayerStateChangeForLoad);
-                            checkAndResolve();
-                        }
-                    };
-
-                    if (player) {
-                        player.addEventListener('onStateChange', handlePlayerStateChangeForLoad);
-                        // Check initial state if player is already loaded (e.g., on subsequent video loads)
-                        const initialState = player.getPlayerState();
-                        if (initialState === YT.PlayerState.CUED || initialState === YT.PlayerState.PAUSED || initialState === YT.PlayerState.PLAYING || initialState === YT.PlayerState.BUFFERING) {
-                            youtubePlayerLoadedAndReady = true;
-                        }
-                    } else {
-                        // If player not ready, assume it will be handled by onYouTubeIframeAPIReady
-                        youtubePlayerLoadedAndReady = false;
-                    }
-
-                    if (loadingOverlay) {
-                        loadingOverlay.addEventListener('transitionend', handleOverlayTransitionEnd);
-                        if (!loadingOverlay.classList.contains('show') && loadingOverlay.style.visibility === 'hidden') {
-                            overlayTransitionDone = true;
-                        }
-                    } else {
-                        overlayTransitionDone = true;
-                    }
-                    checkAndResolve(); // Initial check
-                });
-
-                waitForOverlayAndVideo.then(() => {
-                    // Loading overlay is hidden and YouTube player is ready to be played.
-                    // Attempt to play the video. Browser autoplay policies might still prevent it.
-                    // If it fails, the user will see the play button and can click it.
-                    player.playVideo().then(() => {
-                        // Successfully played (or attempted to play)
-                        playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Optimistically update icon
-                    }).catch(error => {
-                        console.warn("Autoplay was prevented or error playing video:", error);
-                        playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Revert to play icon if failed
-                        // The user will need to click the play button.
-                    });
-                }).catch(error => {
-                    console.error("Error waiting for overlay and video to be ready:", error);
-                    // Fallback: If something went wrong, just hide overlay.
-                    if (loadingOverlay) loadingOverlay.classList.remove('show');
-                });
+            if (youtubeIframe) {
+                // Set the iframe src directly for default YouTube player
+                // autoplay=0 to prevent immediate autoplay on page load/navigation
+                youtubeIframe.src = `https://www.youtube.com/embed/${youtubeVideoId}?controls=1&autoplay=0`;
             }
 
             if (videoTitleElement) videoTitleElement.textContent = video.title;
@@ -550,10 +317,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         } else {
             // Handle video not found
-            if (player) {
-                player.stopVideo(); // Stop any playing video
-                player.clearVideo(); // Clear the player
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            if (youtubeIframe) {
+                youtubeIframe.src = `about:blank`; // Clear iframe content
             }
             if (videoTitleElement) videoTitleElement.textContent = await fetchTranslation(currentLang, 'video_not_found'); // Use translated message
             document.title = await fetchTranslation(currentLang, 'video_not_found') + ' - LumiStream Realm'; // Update title for not found
@@ -565,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error(`Video with ID ${videoId} not found.`);
         }
 
-        // Hide loading overlay (it will trigger transitionend)
+        // Hide loading overlay immediately after content is loaded
         if (loadingOverlay) {
             loadingOverlay.classList.remove('show');
         }
@@ -772,19 +537,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Initial video player setup
     async function initializeVideoPlayer() {
-        if (!youtubePlayerReady) {
-            console.warn("YouTube IFrame Player API is not yet ready. Retrying initialization...");
-            setTimeout(initializeVideoPlayer, 100); // Retry after 100ms
-            return;
-        }
-
-        player = new YT.Player('youtube-player', {
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-
         const urlParams = new URLSearchParams(window.location.search);
         const videoIdFromUrl = urlParams.get('id');
         const initialVideoId = videoIdFromUrl || videos[0].id; // Use ID from URL or default to first video
@@ -794,55 +546,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         await applyTranslations(currentLang); // Apply translations after initial load
     }
 
-    function onPlayerReady(event) {
-        console.log("YouTube Player is ready.");
-        // Set initial volume and update slider
-        const currentVolume = player.getVolume(); // Get volume from YouTube player (0-100)
-        if (volumeSlider) {
-            volumeSlider.value = currentVolume / 100; // Set slider value (0-1)
-            // Manually trigger input event to update icon
-            volumeSlider.dispatchEvent(new Event('input'));
-        }
+    // Removed onPlayerReady and onPlayerStateChange functions
 
-        // Start time update interval
-        if (intervalId) clearInterval(intervalId); // Clear any existing interval
-        intervalId = setInterval(() => {
-            if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                const current = player.getCurrentTime();
-                const duration = player.getDuration();
-                if (duration > 0) {
-                    const progress = (current / duration) * 100;
-                    if (progressBar) progressBar.style.width = `${progress}%`;
-                    if (progressHandle) progressHandle.style.left = `${progress}%`;
-                    if (currentTimeElement) currentTimeElement.textContent = formatTime(current);
-                    if (durationElement) durationElement.textContent = formatTime(duration);
-                }
-            }
-        }, 1000); // Update every second
-    }
-
-    function onPlayerStateChange(event) {
-        if (!playPauseButton || !player) return;
-
-        switch (event.data) {
-            case YT.PlayerState.PLAYING:
-                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
-                break;
-            case YT.PlayerState.PAUSED:
-            case YT.PlayerState.ENDED:
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
-                break;
-            case YT.PlayerState.BUFFERING:
-                // Optionally show a buffering indicator
-                break;
-            case YT.PlayerState.CUED:
-                // Video is cued, but not playing yet.
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
-                break;
-        }
-    }
-
-    // Call initializeVideoPlayer when DOM is ready (or if YouTube API is already ready)
+    // Call initializeVideoPlayer when DOM is ready
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         initializeVideoPlayer();
     } else {

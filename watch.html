@@ -68,58 +68,16 @@
                 <!-- 左側：影片播放器及詳細資訊 -->
                 <section class="flex-1">
                     <div id="custom-video-player" class="video-player-container group relative">
-                        <!-- YouTube IFrame Player -->
-                        <!-- controls=0: 隱藏原生控制項 -->
-                        <!-- modestbranding=1: 顯示較精簡的 YouTube 品牌標識 -->
-                        <!-- rel=0: 影片結束時不顯示相關影片 (只顯示來自同一頻道的影片) -->
+                        <!-- YouTube IFrame Player - Simplified for default UI -->
+                        <!-- controls=1: 顯示原生控制項 -->
+                        <!-- autoplay=0: 初始不自動播放 -->
                         <iframe id="youtube-player" class="w-full h-full object-cover rounded-xl"
-                                src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1&controls=0&modestbranding=1&rel=0&autoplay=0"
+                                src="about:blank"
                                 frameborder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen>
                         </iframe>
-
-                        <!-- Custom Controls -->
-                        <div class="video-controls absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <!-- Progress Bar -->
-                            <div class="relative h-2 bg-gray-700 rounded-full mb-3 cursor-pointer" id="progress-bar-container">
-                                <div class="h-full bg-cyan-500 rounded-full" id="progress-bar"></div>
-                                <div class="absolute -top-1.5 -ml-2 w-4 h-4 bg-cyan-400 rounded-full shadow-lg transform -translate-x-1/2" id="progress-handle"></div>
-                            </div>
-
-                            <div class="flex items-center justify-between text-gray-300">
-                                <div class="flex items-center space-x-4">
-                                    <button id="play-pause-button" class="text-2xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                    <button id="prev-button" class="text-xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-backward"></i>
-                                    </button>
-                                    <button id="next-button" class="text-xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-forward"></i>
-                                    </button>
-                                    <div class="flex items-center">
-                                        <button id="volume-button" class="text-xl hover:text-cyan-400 transition-colors mr-2">
-                                            <i class="fas fa-volume-up"></i>
-                                        </button>
-                                        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" class="w-20 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
-                                    </div>
-                                    <span id="current-time">00:00</span> / <span id="duration">00:00</span>
-                                </div>
-
-                                <div class="flex items-center space-x-4">
-                                    <button id="captions-button" class="text-xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-closed-captioning"></i>
-                                    </button>
-                                    <button id="settings-button" class="text-xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-cog"></i>
-                                    </button>
-                                    <button id="fullscreen-button" class="text-xl hover:text-cyan-400 transition-colors">
-                                        <i class="fas fa-expand"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Custom Controls Removed: User wants default YouTube UI -->
                     </div>
 
                     <h1 id="video-title" class="text-2xl font-bold text-cyan-300 mb-3 mt-4"></h1>
@@ -215,8 +173,7 @@
     <!-- 載入遮罩將動態載入到這裡 -->
     <div id="loading-overlay-container"></div>
 
-    <!-- YouTube IFrame Player API script -->
-    <script async src="https://www.youtube.com/iframe_api"></script>
+    <!-- Removed YouTube IFrame Player API script as we're using simple embed -->
     <script type="module" src="video_playback_script.js" defer></script> <!-- 引入影片播放頁面專用 JavaScript 檔案 -->
 </body>
 </html>
