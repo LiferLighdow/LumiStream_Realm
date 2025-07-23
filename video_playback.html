@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="video_page_title">LumiStream Realm - Video Playback</title>
+    <!-- Include Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include LXGW Marker Gothic font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-marker-gothic-regular/index.css">
+    <!-- Include Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> <!-- 引入共用 CSS -->
+
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- 頂部導航欄 -->
+    <header class="bg-black shadow-2xl p-4 flex items-center justify-between sticky top-0 z-20 border-b border-gray-800">
+        <!-- Logo/標題 -->
+        <div class="flex items-center space-x-3">
+            <button id="sidebar-toggle" class="p-2 rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <i class="fas fa-bars text-gray-400 text-xl"></i>
+            </button>
+            <!-- 未來感 Logo -->
+            <div class="flex items-center text-cyan-400 text-3xl font-bold tracking-wider">
+                <i class="fas fa-atom mr-2 text-cyan-400"></i> <span data-i18n-key="app_name">LumiStream Realm</span>
+            </div>
+        </div>
+
+        <!-- 整合式搜尋欄 -->
+        <div class="flex-grow max-w-2xl mx-4 hidden sm:block">
+            <div class="flex bg-gray-900 rounded-full border border-gray-700 focus-within:border-cyan-500 transition-all duration-300">
+                <input type="text" data-i18n-key="search_placeholder" placeholder="Search videos..." class="w-full bg-transparent p-2 pl-6 text-gray-200 rounded-l-full focus:outline-none" style="box-shadow: none;">
+                <button class="bg-gray-700 rounded-r-full px-6 text-gray-400 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors duration-200">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 上傳影片按鈕 & 使用者頭像 -->
+        <div class="flex items-center space-x-4 relative">
+            <button class="tech-button text-white font-semibold py-2 px-5 rounded-full transition duration-300 ease-in-out hidden md:block">
+                <i class="fas fa-upload mr-2"></i><span data-i18n-key="upload_button_text">Upload Video</span>
+            </button>
+            <div id="user-avatar" class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-full flex items-center justify-center text-white text-lg font-semibold cursor-pointer hover:scale-105 transition duration-200 border-2 border-cyan-400">
+                U
+            </div>
+            <!-- 頭像選單將動態載入到這裡 -->
+            <div id="account-menu-container"></div>
+        </div>
+    </header>
+
+    <!-- 主要內容區域 -->
+    <div class="flex flex-grow">
+        <!-- 側邊欄將動態載入到這裡 -->
+        <div id="sidebar-container"></div>
+
+        <main id="main-content" class="flex-grow flex-col lg:flex-row p-6 bg-gray-900 gap-6">
+            <!-- 影片播放器及詳細資訊區塊 -->
+            <section class="flex-1 lg:max-w-[calc(100%-350px)]">
+                <div id="video-player-container" class="video-player-container mb-6">
+                    <!-- YouTube iframe 將在此處載入 -->
+                </div>
+
+                <h1 id="video-title" class="text-2xl font-bold text-cyan-300 mb-3"></h1>
+
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-800 pb-4">
+                    <div class="flex items-center mb-4 sm:mb-0">
+                        <div id="channel-avatar" class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-lg font-semibold mr-3"></div>
+                        <div>
+                            <p id="channel-name" class="text-gray-300 font-semibold flex items-center"></p>
+                            <p id="channel-subscribers" class="text-gray-500 text-sm"></p>
+                        </div>
+                        <button class="tech-button ml-4 px-4 py-2 text-white font-semibold rounded-full text-sm" data-i18n-key="subscribe_button_text">Subscribe</button>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <button class="flex items-center text-gray-400 hover:text-cyan-400 transition-colors duration-200 p-2 rounded-full hover:bg-gray-800" id="like-button">
+                            <i class="fas fa-thumbs-up mr-2"></i><span id="like-count">0</span>
+                        </button>
+                        <button class="flex items-center text-gray-400 hover:text-fuchsia-400 transition-colors duration-200 p-2 rounded-full hover:bg-gray-800" id="dislike-button">
+                            <i class="fas fa-thumbs-down mr-2"></i><span id="dislike-count">0</span>
+                        </button>
+                        <button class="flex items-center text-gray-400 hover:text-yellow-400 transition-colors duration-200 p-2 rounded-full hover:bg-gray-800" id="share-button">
+                            <i class="fas fa-share-alt mr-2"></i><span data-i18n-key="share_button_text">Share</span>
+                        </button>
+                        <button class="flex items-center text-gray-400 hover:text-lime-400 transition-colors duration-200 p-2 rounded-full hover:bg-gray-800" id="save-button">
+                            <i class="fas fa-bookmark mr-2"></i><span data-i18n-key="save_button_text">Save</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 影片描述 -->
+                <div class="bg-gray-800 p-4 rounded-lg mb-6 border border-gray-700">
+                    <p id="video-meta" class="text-gray-500 text-sm mb-2"></p>
+                    <p id="video-description" class="text-gray-300 leading-relaxed"></p>
+                </div>
+
+                <!-- 評論區 -->
+                <div class="comments-section">
+                    <h3 class="text-xl font-bold text-yellow-400 mb-4" data-i18n-key="comments_title">Comments</h3>
+                    <div class="flex items-start mb-6">
+                        <div class="w-10 h-10 bg-gray-600 rounded-full flex-shrink-0 mr-3 flex items-center justify-center text-white">您</div>
+                        <div class="flex-grow">
+                            <input type="text" data-i18n-key="comment_placeholder" placeholder="Add a public comment..." class="w-full bg-gray-800 text-gray-200 p-3 rounded-lg focus:outline-none focus:border-cyan-500 border border-gray-700">
+                            <div class="flex justify-end mt-2 space-x-2">
+                                <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors" data-i18n-key="cancel_comment_button">Cancel</button>
+                                <button class="tech-button px-4 py-2 rounded-full text-white" data-i18n-key="comment_button">Comment</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 範例評論 -->
+                    <div class="bg-gray-800 p-4 rounded-lg mb-4 border border-gray-700">
+                        <div class="flex items-start mb-2">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex-shrink-0 mr-3 flex items-center justify-center text-white text-sm">A</div>
+                            <div>
+                                <p class="text-gray-300 font-semibold text-sm">Alice <span class="text-gray-500 text-xs ml-2">2 days ago</span></p>
+                                <p class="text-gray-200 text-sm">This is truly groundbreaking research! The future is now.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg mb-4 border border-gray-700">
+                        <div class="flex items-start mb-2">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex-shrink-0 mr-3 flex items-center justify-center text-white text-sm">B</div>
+                            <div>
+                                <p class="text-gray-300 font-semibold text-sm">Bob <span class="text-gray-500 text-xs ml-2">1 day ago</span></p>
+                                <p class="text-gray-200 text-sm">Mind-blowing concepts! Can't wait to see this become reality.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 相關影片側邊欄 -->
+            <aside class="w-full lg:w-80 flex-shrink-0">
+                <h2 class="text-xl font-bold text-lime-400 mb-4" data-i18n-key="related_videos_title">Related Videos</h2>
+                <div id="related-videos-grid" class="grid grid-cols-1 gap-4">
+                    <!-- 相關影片將在此處由 JavaScript 動態載入 -->
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- 頁腳 -->
+    <footer class="bg-black text-gray-600 p-4 text-center mt-6 border-t border-gray-800">
+        <p data-i18n-key="footer_text">&copy; 2025 LumiStream Realm. All rights reserved.</p>
+    </footer>
+
+    <!-- 訊息彈窗 -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- 載入遮罩 -->
+    <div id="loading-overlay">
+        <!-- 可愛載入動畫 (愛心圖示) -->
+        <i class="fas fa-heart cute-spinner"></i>
+    </div>
+
+    <script type="module" src="video_playback_script.js" defer></script> <!-- 引入影片播放頁面專用 JavaScript 檔案 -->
+</body>
+</html>
