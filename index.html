@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="title">LumiStream Realm - Future Video Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-marker-gothic-regular/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> <!-- 引入自定義 CSS -->
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="bg-black shadow-2xl p-4 flex items-center justify-between sticky top-0 z-20 border-b border-gray-800">
+        <div class="flex items-center space-x-3">
+            <button id="sidebar-toggle" class="p-2 rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <i class="fas fa-bars text-gray-400 text-xl"></i>
+            </button>
+            <div class="flex items-center text-cyan-400 text-3xl font-bold tracking-wider">
+                <i class="fas fa-atom mr-2 text-cyan-400"></i> <span data-i18n-key="app_name">LumiStream Realm</span>
+            </div>
+        </div>
+
+        <div class="flex-grow max-w-2xl mx-4 hidden sm:block">
+            <div class="flex bg-gray-900 rounded-full border border-gray-700 focus-within:border-cyan-500 transition-all duration-300">
+                <input type="text" data-i18n-key="search_placeholder" placeholder="Search videos..." class="w-full bg-transparent p-2 pl-6 text-gray-200 rounded-l-full focus:outline-none" style="box-shadow: none;">
+                <button class="bg-gray-700 rounded-r-full px-6 text-gray-400 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors duration-200">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4 relative">
+            <button class="tech-button text-white font-semibold py-2 px-5 rounded-full transition duration-300 ease-in-out hidden md:block">
+                <i class="fas fa-upload mr-2"></i><span data-i18n-key="upload_button_text">Upload Video</span>
+            </button>
+            <div id="user-avatar" class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-full flex items-center justify-center text-white text-lg font-semibold cursor-pointer hover:scale-105 transition duration-200 border-2 border-cyan-400">
+                U
+            </div>
+            <!-- 頭像選單將動態載入到這裡 -->
+            <div id="account-menu-container"></div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow">
+        <!-- 側邊欄將動態載入到這裡 -->
+        <div id="sidebar-container"></div>
+
+        <!-- 影片列表內容直接放在這裡 -->
+        <main id="main-content" class="flex-grow p-6 bg-gray-900">
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-yellow-400 mb-4" data-i18n-key="categories_title">Categories</h2>
+                <div id="category-tags" class="flex flex-wrap gap-3">
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-cyan-400 transition-colors duration-200 border border-gray-600" data-category="All Data"><i class="fas fa-globe mr-2"></i><span data-i18n-key="category_all_text">All</span></span>
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-lime-400 transition-colors duration-200 border border-gray-600" data-category="Future Tech"><i class="fas fa-robot mr-2"></i><span data-i18n-key="category_tech_text">Tech</span></span>
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-fuchsia-400 transition-colors duration-200 border border-gray-600" data-category="Space Exploration"><i class="fas fa-rocket mr-2"></i><span data-i18n-key="category_space_text">Space</span></span>
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-red-400 transition-colors duration-200 border border-gray-600" data-category="AI Evolution"><i class="fas fa-brain mr-2"></i><span data-i18n-key="category_ai_text">AI</span></span>
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-blue-400 transition-colors duration-200 border border-gray-600" data-category="Life Sciences"><i class="fas fa-dna mr-2"></i><span data-i18n-key="category_life_science_text">Life Science</span></span>
+                    <span class="category-tag bg-gray-700 text-gray-300 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-600 hover:text-green-400 transition-colors duration-200 border border-gray-600" data-category="Historical Data"><i class="fas fa-hourglass-half mr-2"></i><span data-i18n-key="category_history_text">History</span></span>
+                </div>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-cyan-400 mb-4" data-i18n-key="recommended_title">Recommended for You</h2>
+                <div id="home-video-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    </div>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-lime-400 mb-4" data-i18n-key="trending_title">Trending Videos</h2>
+                <div id="trending-video-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    </div>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-fuchsia-400 mb-4" data-i18n-key="music_title">Music</h2>
+                <div id="music-video-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="bg-black text-gray-600 p-4 text-center mt-6 border-t border-gray-800">
+        <p data-i18n-key="footer_text">&copy; 2025 LumiStream Realm. All rights reserved.</p>
+    </footer>
+
+    <div id="message-box" class="message-box"></div>
+
+    <!-- 載入遮罩 -->
+    <div id="loading-overlay">
+        <i class="fas fa-heart cute-spinner"></i>
+    </div>
+
+    <script type="module" src="script.js" defer></script> <!-- 引入主 JavaScript 檔案，使用 type="module" -->
+</body>
+</html>

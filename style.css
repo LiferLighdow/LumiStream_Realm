@@ -1,0 +1,260 @@
+/* 使用 LXGW Marker Gothic 字體 */
+body {
+    font-family: 'LXGW Marker Gothic', sans-serif;
+    background-color: #0a0a0a; /* 更深的背景色 */
+    color: #e0e0e0; /* 淺色文字 */
+}
+/* 自定義滾動條樣式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1a1a1a; /* 深色滾動條軌道 */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #333333; /* 深色滾動條拇指 */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555555; /* 懸停時顏色變深 */
+}
+/* 影片卡片縮圖的固定比例 */
+.thumbnail-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 比例 */
+    overflow: hidden;
+    border-radius: 0.5rem; /* 圓角 */
+}
+.thumbnail-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* 針對高科技感的按鈕樣式 */
+.tech-button {
+    background: linear-gradient(90deg, #00eaff, #ff00e0); /* 霓虹漸變背景 */
+    box-shadow: 0 4px 15px 0 rgba(0, 234, 255, 0.5); /* 淺藍色光暈陰影 */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 更流暢的過渡 */
+    border: 1px solid rgba(0, 234, 255, 0.6); /* 淺藍色邊框 */
+}
+.tech-button:hover {
+    background: linear-gradient(90deg, #ff00e0, #00eaff); /* 懸停時漸變反轉 */
+    box-shadow: 0 6px 25px 0 rgba(255, 0, 224, 0.7); /* 懸停時粉色光暈陰影 */
+    transform: translateY(-3px); /* 輕微上浮 */
+    border-color: rgba(255, 0, 224, 0.8); /* 懸停時粉色邊框 */
+}
+.tech-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* 側邊欄項目懸停效果 */
+.sidebar-item {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.sidebar-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #00eaff, #ff00e0); /* 漸變發光條 */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+.sidebar-item:hover {
+    background-color: #1a1a1a; /* 深色懸停背景 */
+    color: #00eaff; /* 文字變色 */
+}
+.sidebar-item:hover::before {
+    transform: translateX(0); /* 發光條滑入 */
+}
+
+/* 針對 Font Awesome 圖示的強制樣式 */
+.fas, .far, .fab {
+    display: inline-block !important;
+    visibility: visible !important;
+    font-style: normal !important; /* 確保不被斜體 */
+    font-variant: normal !important; /* 確保不被變體 */
+    text-rendering: auto !important; /* 確保渲染 */
+    -webkit-font-smoothing: antialiased !important; /* 抗鋸齒 */
+    -moz-osx-font-smoothing: grayscale !important; /* 抗鋸齒 */
+    line-height: 1 !important; /* 標準行高 */
+    vertical-align: -0.125em !important; /* 對齊 */
+    font-size: inherit !important; /* 繼承父元素字體大小 */
+    color: inherit !important; /* 繼承父元素顏色 */
+}
+
+/* 確保 Font Awesome 字體家族被正確應用 */
+.fas { font-family: 'Font Awesome 6 Free' !important; font-weight: 900 !important; }
+.far { font-family: 'Font Awesome 6 Free' !important; font-weight: 400 !important; }
+.fab { font-family: 'Font Awesome 6 Brands' !important; }
+
+/* 側邊欄圖示顏色過渡 */
+.sidebar-item .fas,
+.sidebar-item .far,
+.sidebar-item .fab {
+    transition: color 0.3s ease;
+}
+.sidebar-item:hover .fas,
+.sidebar-item:hover .far,
+.sidebar-item:hover .fab {
+    color: #00eaff !important; /* 懸停時圖示顏色變色 */
+}
+
+/* 影片卡片懸停效果 */
+.video-card-hover:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 234, 255, 0.3), 0 0 15px rgba(255, 0, 224, 0.3); /* 雙色光暈 */
+    border-color: rgba(0, 234, 255, 0.5);
+}
+
+/* 訊息彈窗樣式 */
+.message-box {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1a1a1a;
+    color: #00eaff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 234, 255, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    border: 1px solid #00eaff;
+}
+.message-box.show {
+    opacity: 1;
+}
+
+/* 分類標籤圖示樣式 */
+.category-tag .fas,
+.category-tag .far,
+.category-tag .fab {
+    margin-right: 0.5rem;
+    font-size: 1rem !important; /* 調整大小 */
+    transition: color 0.2s ease;
+}
+.category-tag:hover .fas,
+.category-tag:hover .far,
+.category-tag:hover .fab {
+    color: inherit !important; /* 繼承父元素的hover顏色 */
+}
+
+/* 帳號選單樣式 */
+.account-menu {
+    position: absolute;
+    top: calc(100% + 10px); /* 位於頭像下方 */
+    right: 0;
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    width: 200px;
+    z-index: 50;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    pointer-events: none; /* 預設不響應事件 */
+}
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto; /* 顯示時響應事件 */
+}
+.account-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.account-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.account-menu li a:hover {
+    background-color: #333333;
+    color: #00eaff;
+}
+.account-menu li a .fas,
+.account-menu li a .far,
+.account-menu li a .fab {
+    margin-right: 10px;
+    font-size: 1.25rem !important; /* 調整字體大小 */
+    color: #888 !important; /* 預設圖示顏色 */
+}
+.account-menu li a:hover .fas,
+.account-menu li a:hover .far,
+.account-menu li a:hover .fab {
+    color: #00eaff !important; /* 懸停時圖示顏色變色 */
+}
+
+/* 語言子選單樣式 */
+.language-submenu {
+    display: none; /* 預設隱藏 */
+    padding-left: 20px; /* 子選單項目縮排 */
+    border-top: 1px solid #2d3748;
+    margin-top: 5px;
+    padding-top: 5px;
+}
+.language-submenu.show {
+    display: block;
+}
+
+/* 載入遮罩樣式 */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black; /* 完全不透明的黑色背景 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* 確保在最上層 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+#loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 可愛載入動畫 (愛心跳動) 樣式 */
+.cute-spinner {
+    font-size: 3rem; /* 圖示大小 */
+    color: #ff00e0; /* 愛心顏色 */
+    animation: pulse 1s infinite alternate; /* 跳動動畫 */
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+
+/* 側邊欄收納樣式 */
+/* 預設在小螢幕上隱藏 */
+#sidebar.hidden-mobile {
+    transform: translateX(-100%);
+}
+/* 在大螢幕上始終顯示 */
+@media (min-width: 1024px) { /* Tailwind's lg breakpoint */
+    #sidebar.hidden-mobile {
+        transform: translateX(0); /* 在大螢幕上覆蓋隱藏效果 */
+    }
+}
