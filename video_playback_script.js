@@ -419,6 +419,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Update play/pause icon
             }
             if (videoTitleElement) videoTitleElement.textContent = video.title;
+            // Update the document title (browser tab title)
+            document.title = video.title + ' - LumiStream Realm';
+
             if (channelAvatarElement) channelAvatarElement.textContent = video.channel.charAt(0).toUpperCase();
             if (channelNameElement) {
                 channelNameElement.innerHTML = video.channel; // Use innerHTML to clear previous verified icon
@@ -449,6 +452,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
             }
             if (videoTitleElement) videoTitleElement.textContent = await fetchTranslation(currentLang, 'video_not_found'); // Use translated message
+            document.title = await fetchTranslation(currentLang, 'video_not_found') + ' - LumiStream Realm'; // Update title for not found
             if (channelAvatarElement) channelAvatarElement.textContent = '';
             if (channelNameElement) channelNameElement.textContent = '';
             if (channelSubscribersElement) channelSubscribersElement.textContent = '';
