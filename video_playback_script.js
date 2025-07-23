@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         volumeSlider.addEventListener('input', () => {
             if (!player) return;
             player.setVolume(volumeSlider.value * 100); // YouTube API uses 0-100
-            updateVolumeIcon(volumeSlider.value * 100);
+            updateVolumeIcon(player.getVolume());
         });
 
         volumeButton.addEventListener('click', () => {
@@ -441,82 +441,84 @@ document.addEventListener('DOMContentLoaded', async function() {
             const youtubeVideoId = video.youtubeId; // Directly use youtubeId from videos.js
 
             if (player) {
-                // Load the new YouTube video
+                // Load the new YouTube video. Do NOT call player.pauseVideo() immediately here.
+                // Let the player load and reach its initial state (usually CUED or PAUSED).
                 player.loadVideoById(youtubeVideoId);
-                // Pause immediately until ready and overlay is gone
-                player.pauseVideo();
-                playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Show play icon
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Ensure play icon is shown initially
 
                 // Use Promise to wait for loading overlay transition and YouTube player readiness
                 const waitForOverlayAndVideo = new Promise(resolve => {
                     let overlayTransitionDone = false;
-                    let youtubePlayerReadyToPlay = false;
+                    let youtubePlayerLoadedAndReady = false; // Renamed for clarity
 
                     const checkAndResolve = () => {
-                        if (overlayTransitionDone && youtubePlayerReadyToPlay) {
+                        if (overlayTransitionDone && youtubePlayerLoadedAndReady) {
                             resolve();
                         }
                     };
 
                     // Listen for loading overlay's transition end
                     const handleOverlayTransitionEnd = () => {
-                        if (loadingOverlay) { // Check if loadingOverlay exists before removing listener
+                        if (loadingOverlay) {
                             loadingOverlay.removeEventListener('transitionend', handleOverlayTransitionEnd);
                         }
                         overlayTransitionDone = true;
                         checkAndResolve();
                     };
 
-                    // Listen for YouTube player state change to PLAYING or BUFFERING
-                    // This is more reliable than 'canplay' for YouTube API
-                    const handlePlayerStateChange = (event) => {
-                        if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING) {
-                            youtubePlayerReadyToPlay = true;
-                            // player.removeEventListener('onStateChange', handlePlayerStateChange); // Remove listener after first play
-                            checkAndResolve();
-                        } else if (event.data === YT.PlayerState.CUED) {
-                            // If video is cued, it's ready to be played programmatically
-                            youtubePlayerReadyToPlay = true;
+                    // Listen for YouTube player state change to CUED or PAUSED (after loading)
+                    const handlePlayerStateChangeForLoad = (event) => {
+                        // YT.PlayerState.CUED (5): The video is loaded and ready to play.
+                        // YT.PlayerState.PAUSED (2): The video is paused. This might be the state after loading if autoplay is off.
+                        // YT.PlayerState.PLAYING (1): If it starts playing immediately (e.g., muted autoplay).
+                        // YT.PlayerState.BUFFERING (3): If it's buffering before playing.
+                        if (event.data === YT.PlayerState.CUED || event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.BUFFERING) {
+                            youtubePlayerLoadedAndReady = true;
+                            // Remove this specific listener to avoid multiple resolves for the same load event
+                            player.removeEventListener('onStateChange', handlePlayerStateChangeForLoad);
                             checkAndResolve();
                         }
                     };
 
-                    // Attach listener only if player exists
                     if (player) {
-                        player.addEventListener('onStateChange', handlePlayerStateChange);
-                        // Also check initial state if already playing/buffering (e.g., if autoplay worked)
+                        player.addEventListener('onStateChange', handlePlayerStateChangeForLoad);
+                        // Check initial state if player is already loaded (e.g., on subsequent video loads)
                         const initialState = player.getPlayerState();
-                        if (initialState === YT.PlayerState.PLAYING || initialState === YT.PlayerState.BUFFERING || initialState === YT.PlayerState.CUED) {
-                            youtubePlayerReadyToPlay = true;
+                        if (initialState === YT.PlayerState.CUED || initialState === YT.PlayerState.PAUSED || initialState === YT.PlayerState.PLAYING || initialState === YT.PlayerState.BUFFERING) {
+                            youtubePlayerLoadedAndReady = true;
                         }
                     } else {
                         // If player not ready, assume it will be handled by onYouTubeIframeAPIReady
-                        youtubePlayerReadyToPlay = false;
+                        youtubePlayerLoadedAndReady = false;
                     }
-
 
                     if (loadingOverlay) {
                         loadingOverlay.addEventListener('transitionend', handleOverlayTransitionEnd);
-                        // If overlay is already hidden (e.g., on subsequent video loads), mark as done
                         if (!loadingOverlay.classList.contains('show') && loadingOverlay.style.visibility === 'hidden') {
-                             overlayTransitionDone = true;
+                            overlayTransitionDone = true;
                         }
                     } else {
-                        // If no loading overlay element, assume it's done
                         overlayTransitionDone = true;
                     }
-                    checkAndResolve(); // Initial check in case events already happened
+                    checkAndResolve(); // Initial check
                 });
 
                 waitForOverlayAndVideo.then(() => {
-                    // Loading overlay is hidden and YouTube player is ready, now play
-                    player.playVideo(); // This will actually start the video
-                    playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Update to pause icon
+                    // Loading overlay is hidden and YouTube player is ready to be played.
+                    // Attempt to play the video. Browser autoplay policies might still prevent it.
+                    // If it fails, the user will see the play button and can click it.
+                    player.playVideo().then(() => {
+                        // Successfully played (or attempted to play)
+                        playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Optimistically update icon
+                    }).catch(error => {
+                        console.warn("Autoplay was prevented or error playing video:", error);
+                        playPauseButton.innerHTML = '<i class="fas fa-play"></i>'; // Revert to play icon if failed
+                        // The user will need to click the play button.
+                    });
                 }).catch(error => {
                     console.error("Error waiting for overlay and video to be ready:", error);
-                    // Fallback: If something went wrong, just hide overlay and try to play
+                    // Fallback: If something went wrong, just hide overlay.
                     if (loadingOverlay) loadingOverlay.classList.remove('show');
-                    if (player) player.playVideo();
                 });
             }
 
