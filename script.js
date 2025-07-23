@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const accountMenuContainer = document.getElementById('account-menu-container');
     const mainContent = document.getElementById('main-content');
     const messageBox = document.getElementById('message-box');
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingOverlayContainer = document.getElementById('loading-overlay-container'); // New container for loading overlay
+
+    let loadingOverlay = null; // Will be set after loading the component
 
     let currentLang = 'en'; // Default language
     let currentSelectedCategory = 'All Data'; // Track the currently selected category
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function loadComponent(container, filePath) {
         if (!container) {
             console.error(`Error: Target container for ${filePath} is null. Cannot load component.`);
-            return;
+            return null; // Return null if container is not found
         }
         try {
             console.log(`Attempting to fetch: ${filePath}`);
@@ -28,23 +30,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             const html = await response.text();
             container.innerHTML = html;
             console.log(`Successfully loaded component: ${filePath}. Container innerHTML length: ${container.innerHTML.length}`);
+            return container.firstElementChild; // Return the loaded component's root element
         } catch (error) {
             console.error(`Error loading component ${filePath}:`, error);
+            return null;
         }
     }
 
-    // Load sidebar and account menu components
+    // Load components
     console.log("Loading sidebar component...");
     await loadComponent(sidebarContainer, 'components/sidebar.html');
     console.log("Loading account menu component...");
     await loadComponent(accountMenuContainer, 'components/account_menu.html');
-    // video_list.html 的內容現在直接在 index.html 中，所以不需要再次載入 mainContent
+    console.log("Loading loading overlay component...");
+    loadingOverlay = await loadComponent(loadingOverlayContainer, 'components/loading_overlay.html');
+
 
     // Add a small delay to ensure DOM has settled after dynamic insertions
     await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay
 
     // Get elements after components are loaded (and main content is parsed)
-    // Re-querying these elements to ensure they are available after dynamic content insertion
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const userAvatar = document.getElementById('user-avatar');
@@ -68,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Final check: Home video grid:', homeVideoGrid);
     console.log('Final check: Trending video grid:', trendingVideoGrid);
     console.log('Final check: Music video grid:', musicVideoGrid);
+    console.log('Final check: Loading overlay element:', loadingOverlay);
 
 
     // Explicitly ensure the account menu and language submenu are hidden on load
@@ -201,6 +207,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         videoCard.setAttribute('data-video-id', video.id);
         videoCard.setAttribute('data-video-title', video.title);
         videoCard.setAttribute('data-video-description', video.description);
+        videoCard.addEventListener('click', () => {
+            // Navigate to video playback page
+            window.location.href = `video_playback.html?id=${video.id}`;
+        });
 
         // Video thumbnail
         const thumbnailContainer = document.createElement('div');

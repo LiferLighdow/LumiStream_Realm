@@ -215,7 +215,7 @@ body {
 }
 
 /* 載入遮罩樣式 */
-#loading-overlay {
+.loading-overlay { /* 更改為類別選擇器 */
     position: fixed;
     top: 0;
     left: 0;
@@ -230,7 +230,7 @@ body {
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
-#loading-overlay.show {
+.loading-overlay.show { /* 更改為類別選擇器 */
     opacity: 1;
     visibility: visible;
 }
@@ -238,7 +238,7 @@ body {
 /* 可愛載入動畫 (愛心跳動) 樣式 */
 .cute-spinner {
     font-size: 3rem; /* 圖示大小 */
-    color: #ff00e0; /* 愛心顏色 */
+    /* color: #ff00e0; /* 愛心顏色 - 已移至 HTML */
     animation: pulse 1s infinite alternate; /* 跳動動畫 */
 }
 
@@ -247,11 +247,25 @@ body {
     100% { transform: scale(1.2); opacity: 1; }
 }
 
+/* LOADING... 文字動畫 */
+.loading-text {
+    animation: blink 1.5s infinite steps(1); /* 閃爍動畫 */
+    /* color: #00eaff; /* 文字顏色 - 已移至 HTML */
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+
 /* 側邊欄基礎樣式 */
 #sidebar {
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border-width 0.3s ease-in-out; /* 添加 padding 和 border-width 到過渡效果 */
-    flex-shrink: 0; /* 在 flex 容器中預防收縮 */
-    overflow-x: hidden; /* 當寬度很小時隱藏內容 */
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border-width 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    flex-shrink: 0;
+    overflow: hidden; /* Ensure content is clipped */
+    /* Add initial box-shadow for consistency */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* 首頁側邊欄行為 (默認行為) */
@@ -265,8 +279,9 @@ body {
         width: 16rem; /* 手機側邊欄的完整寬度 */
         z-index: 40; /* 在主內容上方 */
         transform: translateX(-100%); /* 預設在手機上隱藏 */
-        padding: 1rem; /* 確保有內邊距 */
-        border-width: 1px; /* 確保有邊框 */
+        padding: 1rem;
+        border-width: 1px;
+        border-color: #333333; /* Ensure border color is defined */
     }
     #sidebar:not(.collapsed) { /* 展開時 */
         transform: translateX(0);
@@ -280,16 +295,19 @@ body {
         top: 64px;
         height: calc(100vh - 64px);
         width: 16rem; /* 預設寬度 */
-        transform: translateX(0); /* 預設可見 */
+        transform: translateX(0); /* 預設可見 (initial state for transition) */
         z-index: 10;
-        padding: 1rem; /* 確保有內邊距 */
-        border-width: 1px; /* 確保有邊框 */
+        padding: 1rem;
+        border-width: 1px;
+        border-color: #333333; /* Ensure border color is defined */
     }
     #sidebar.collapsed { /* 收合時寬度變為 0 */
         width: 0;
         padding: 0; /* 移除內邊距 */
         border-width: 0; /* 移除邊框 */
-        transform: translateX(-100%); /* 確保完全移出畫面 */
+        box-shadow: none; /* 移除陰影 */
+        /* 移除 transform: translateX(-100%); 因為 width: 0 已經足夠使其在佈局上消失 */
+        /* 這裡不再需要 transform，因為我們依賴 width: 0 和 overflow: hidden */
     }
 }
 
@@ -303,14 +321,14 @@ body {
     z-index: 40 !important; /* 更高的 z-index 以浮動 */
     transform: translateX(-100%) !important; /* 始終從隱藏狀態開始 */
     transition: transform 0.3s ease-in-out !important; /* 僅 transform 用於過渡 */
-    padding: 1rem !important; /* 確保有內邊距 */
-    border-width: 1px !important; /* 確保有邊框 */
+    padding: 1rem !important;
+    border-width: 1px !important;
+    border-color: #333333 !important; /* Ensure border color is defined */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important; /* Ensure shadow for floating sidebar */
 }
 
 .video-page-sidebar-floating.collapsed {
     transform: translateX(-100%) !important;
-    /* 在浮動模式下，如果需要完全隱藏，也可以考慮設置 width: 0, padding: 0, border-width: 0 */
-    /* 但通常 transform 已經足夠將其移出可視區域 */
 }
 
 .video-page-sidebar-floating:not(.collapsed) {
@@ -345,11 +363,75 @@ body {
     border-radius: 0.75rem; /* 圓角 */
     background-color: #000; /* 黑色背景 */
 }
-.video-player-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
+
+/* 移除預設的影片控制欄 */
+.video-player-container video::-webkit-media-controls {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-enclosure {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-panel {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-play-button {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-current-time-display {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-time-remaining-display {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-timeline {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-mute-button {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-volume-slider {
+    display: none !important;
+}
+.video-player-container video::-webkit-media-controls-fullscreen-button {
+    display: none !important;
+}
+
+/* 自定義控制欄樣式 */
+.video-controls {
+    /* 確保控制欄始終在影片上方 */
+    z-index: 20;
+    /* 調整進度條滑桿的樣式 */
+    /* 針對 WebKit 瀏覽器 */
+    & input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: #00eaff;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(0, 234, 255, 0.7);
+        margin-top: -6px; /* 垂直居中 */
+    }
+
+    & input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: #00eaff;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(0, 234, 255, 0.7);
+    }
+
+    & input[type="range"]::-webkit-slider-runnable-track {
+        background: #333333;
+        border-radius: 5px;
+        height: 4px;
+    }
+
+    & input[type="range"]::-moz-range-track {
+        background: #333333;
+        border-radius: 5px;
+        height: 4px;
+    }
 }
