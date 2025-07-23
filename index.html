@@ -7,9 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-marker-gothic-regular/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-	 <link rel="preconnect" href="https://fonts.googleapis.com">
-	 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	 <link href="https://fonts.googleapis.com/css2?family=LXGW+Marker+Gothic&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> <!-- 引入自定義 CSS -->
 </head>
 <body class="flex flex-col min-h-screen">
@@ -88,10 +85,8 @@
 
     <div id="message-box" class="message-box"></div>
 
-    <!-- 載入遮罩 -->
-    <div id="loading-overlay">
-        <i class="fas fa-heart cute-spinner"></i>
-    </div>
+    <!-- 載入遮罩將動態載入到這裡 -->
+    <div id="loading-overlay-container"></div>
 
     <script type="module" src="script.js" defer></script> <!-- 引入主 JavaScript 檔案，使用 type="module" -->
 </body>

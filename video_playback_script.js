@@ -7,16 +7,36 @@ document.addEventListener('DOMContentLoaded', async function() {
     const accountMenuContainer = document.getElementById('account-menu-container');
     const mainContent = document.getElementById('main-content'); // Main content area for closing sidebar
     const messageBox = document.getElementById('message-box');
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingOverlayContainer = document.getElementById('loading-overlay-container'); // New container for loading overlay
     const overlay = document.getElementById('overlay'); // Get the new overlay element
 
+    let loadingOverlay = null; // Will be set after loading the component
+
+    // Video Player Elements
+    const videoElement = document.getElementById('video-element');
+    const playPauseButton = document.getElementById('play-pause-button');
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+    const volumeButton = document.getElementById('volume-button');
+    const volumeSlider = document.getElementById('volume-slider');
+    const progressBarContainer = document.getElementById('progress-bar-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressHandle = document.getElementById('progress-handle');
+    const currentTimeElement = document.getElementById('current-time');
+    const durationElement = document.getElementById('duration');
+    const captionsButton = document.getElementById('captions-button');
+    const settingsButton = document.getElementById('settings-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const customVideoPlayer = document.getElementById('custom-video-player'); // The container for the video and its controls
+
     let currentLang = 'en'; // Default language
+    let isDraggingProgressBar = false; // Flag for progress bar dragging
 
     // Function to load HTML components dynamically
     async function loadComponent(container, filePath) {
         if (!container) {
             console.error(`Error: Target container for ${filePath} is null. Cannot load component.`);
-            return;
+            return null; // Return null if container is not found
         }
         try {
             console.log(`Attempting to fetch: ${filePath}`);
@@ -28,16 +48,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             const html = await response.text();
             container.innerHTML = html;
             console.log(`Successfully loaded component: ${filePath}. Container innerHTML length: ${container.innerHTML.length}`);
+            return container.firstElementChild; // Return the loaded component's root element
         } catch (error) {
             console.error(`Error loading component ${filePath}:`, error);
+            return null;
         }
     }
 
-    // Load sidebar and account menu components
+    // Load components
     console.log("Loading sidebar component...");
     await loadComponent(sidebarContainer, 'components/sidebar.html');
     console.log("Loading account menu component...");
     await loadComponent(accountMenuContainer, 'components/account_menu.html');
+    console.log("Loading loading overlay component...");
+    loadingOverlay = await loadComponent(loadingOverlayContainer, 'components/loading_overlay.html');
 
     // Add a small delay to ensure DOM has settled after dynamic insertions
     await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay
@@ -50,7 +74,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const languageOption = document.getElementById('language-option');
     const languageSubmenu = document.getElementById('language-submenu');
 
-    const videoPlayerContainer = document.getElementById('video-player-container');
     const videoTitleElement = document.getElementById('video-title');
     const channelAvatarElement = document.getElementById('channel-avatar');
     const channelNameElement = document.getElementById('channel-name');
@@ -72,9 +95,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Final check: Account menu element:', accountMenu);
     console.log('Final check: Language option element:', languageOption);
     console.log('Final check: Language submenu element:', languageSubmenu);
-    console.log('Final check: Video player container:', videoPlayerContainer);
+    console.log('Final check: Video element:', videoElement);
     console.log('Final check: Related videos grid:', relatedVideosGrid);
     console.log('Final check: Overlay element:', overlay);
+    console.log('Final check: Loading overlay element:', loadingOverlay);
 
 
     // Explicitly ensure the account menu and language submenu are hidden on load
@@ -131,10 +155,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // 重新載入影片詳細資訊和相關影片以應用新語言
-        // 這裡假設我們有一個預設的 videoId 或從 URL 獲取
         const urlParams = new URLSearchParams(window.location.search);
         const videoIdFromUrl = urlParams.get('id');
-        const currentVideoId = videoIdFromUrl || 'dQw4w9WgXcQ'; // 預設載入的影片ID
+        const currentVideoId = videoIdFromUrl || videos[0].id; // 預設載入第一個影片
 
         await loadVideoDetails(currentVideoId);
         await renderRelatedVideos(currentVideoId);
@@ -155,13 +178,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
 
-    // Close sidebar when clicking main content area (mobile only) or overlay
+    // Close sidebar when clicking main content area or overlay
     if (mainContent && sidebar && overlay) {
-        mainContent.addEventListener('click', () => {
-            // Only close if sidebar is currently open
-            if (!sidebar.classList.contains('collapsed')) {
-                sidebar.classList.add('collapsed');
-                overlay.classList.remove('show');
+        mainContent.addEventListener('click', (event) => {
+            // Check if the click was *outside* the sidebar itself
+            if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    overlay.classList.remove('show');
+                }
             }
         });
         overlay.addEventListener('click', () => {
@@ -198,6 +223,259 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 2000); // Hide after 2 seconds
         } else {
             console.error("Message box element not found. Cannot display message.");
+        }
+    }
+
+    /**
+     * Formats time in HH:MM:SS or MM:SS format.
+     * @param {number} seconds - The time in seconds.
+     * @returns {string} Formatted time string.
+     */
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        const pad = (num) => String(num).padStart(2, '0');
+        if (h > 0) {
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+        return `${pad(m)}:${pad(s)}`;
+    }
+
+    // --- Video Player Controls Logic ---
+
+    // Play/Pause Toggle
+    if (playPauseButton && videoElement) {
+        playPauseButton.addEventListener('click', () => {
+            if (videoElement.paused || videoElement.ended) {
+                videoElement.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                videoElement.pause();
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+    }
+
+    // Volume Control
+    if (volumeSlider && videoElement && volumeButton) {
+        volumeSlider.addEventListener('input', () => {
+            videoElement.volume = volumeSlider.value;
+            if (videoElement.volume === 0) {
+                volumeButton.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else if (videoElement.volume < 0.5) {
+                volumeButton.innerHTML = '<i class="fas fa-volume-down"></i>';
+            } else {
+                volumeButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        });
+
+        volumeButton.addEventListener('click', () => {
+            if (videoElement.volume === 0) {
+                videoElement.volume = volumeSlider.value > 0 ? volumeSlider.value : 0.5; // Restore previous volume or default
+                volumeButton.innerHTML = videoElement.volume < 0.5 ? '<i class="fas fa-volume-down"></i>' : '<i class="fas fa-volume-up"></i>';
+            } else {
+                videoElement.volume = 0;
+                volumeButton.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            }
+            volumeSlider.value = videoElement.volume;
+        });
+    }
+
+    // Progress Bar
+    if (progressBarContainer && progressBar && progressHandle && videoElement && currentTimeElement && durationElement) {
+        videoElement.addEventListener('timeupdate', () => {
+            if (!isDraggingProgressBar) {
+                const progress = (videoElement.currentTime / videoElement.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressHandle.style.left = `${progress}%`;
+            }
+            currentTimeElement.textContent = formatTime(videoElement.currentTime);
+        });
+
+        videoElement.addEventListener('loadedmetadata', () => {
+            durationElement.textContent = formatTime(videoElement.duration);
+        });
+
+        progressBarContainer.addEventListener('mousedown', (e) => {
+            isDraggingProgressBar = true;
+            updateProgressBar(e);
+            videoElement.pause();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDraggingProgressBar) {
+                updateProgressBar(e);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDraggingProgressBar) {
+                isDraggingProgressBar = false;
+                videoElement.play();
+            }
+        });
+
+        function updateProgressBar(e) {
+            const rect = progressBarContainer.getBoundingClientRect();
+            let clickX = e.clientX - rect.left;
+            if (clickX < 0) clickX = 0;
+            if (clickX > rect.width) clickX = rect.width;
+
+            const newTime = (clickX / rect.width) * videoElement.duration;
+            videoElement.currentTime = newTime;
+
+            const progress = (newTime / videoElement.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressHandle.style.left = `${progress}%`;
+        }
+    }
+
+    // Fullscreen Toggle
+    if (fullscreenButton && customVideoPlayer) {
+        fullscreenButton.addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+            } else {
+                customVideoPlayer.requestFullscreen();
+                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
+    }
+
+    // Captions Toggle (Placeholder functionality)
+    if (captionsButton && videoElement) {
+        captionsButton.addEventListener('click', async () => {
+            // This is a placeholder. Real caption implementation would involve:
+            // 1. Checking if video has text tracks (e.g., <track kind="captions" src="captions.vtt" srclang="en" label="English">)
+            // 2. Iterating through videoElement.textTracks to find and enable/disable them.
+            // For now, it just shows a message.
+            await showMessage('message_clicked', { clicked_item: 'Captions Toggle' });
+            console.log("Captions toggle clicked. (Placeholder - real caption logic needed)");
+        });
+    }
+
+    // Settings Button (Placeholder functionality)
+    if (settingsButton) {
+        settingsButton.addEventListener('click', async () => {
+            await showMessage('message_clicked', { clicked_item: 'Settings' });
+            console.log("Settings button clicked. (Placeholder - real settings logic needed)");
+        });
+    }
+
+    // Previous/Next Video Logic
+    let currentVideoIndex = 0; // Track the index of the currently playing video
+
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', async () => {
+            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+            const newVideoId = videos[currentVideoIndex].id;
+            window.history.pushState({}, '', `video_playback.html?id=${newVideoId}`);
+            await loadVideoDetails(newVideoId);
+            await renderRelatedVideos(newVideoId);
+        });
+
+        nextButton.addEventListener('click', async () => {
+            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+            const newVideoId = videos[currentVideoIndex].id;
+            window.history.pushState({}, '', `video_playback.html?id=${newVideoId}`);
+            await loadVideoDetails(newVideoId);
+            await renderRelatedVideos(newVideoId);
+        });
+    }
+
+    /**
+     * Loads details for a specific video and updates the player.
+     * @param {string} videoId - The ID of the video to load.
+     */
+    async function loadVideoDetails(videoId) {
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('show'); // 顯示載入遮罩
+        }
+        const video = videos.find((v, index) => {
+            if (v.id === videoId) {
+                currentVideoIndex = index; // Update current index when video is found
+                return true;
+            }
+            return false;
+        });
+
+        if (video) {
+            if (videoElement) {
+                videoElement.src = video.videoUrl; // Use videoUrl for custom player
+                videoElement.load(); // Load the new video
+                videoElement.play(); // Auto-play the new video
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Update play/pause icon
+            }
+            if (videoTitleElement) videoTitleElement.textContent = video.title;
+            if (channelAvatarElement) channelAvatarElement.textContent = video.channel.charAt(0).toUpperCase();
+            if (channelNameElement) {
+                channelNameElement.innerHTML = video.channel; // Use innerHTML to clear previous verified icon
+                if (video.isVerified) {
+                    const verifiedIcon = document.createElement('i');
+                    verifiedIcon.className = 'fas fa-check-circle text-blue-400 ml-2';
+                    channelNameElement.appendChild(verifiedIcon);
+                }
+            }
+
+            if (channelSubscribersElement) channelSubscribersElement.textContent = `1.2M subscribers`; // Hardcoded for demo
+
+            const viewsSuffix = await fetchTranslation(currentLang, 'views_suffix');
+            if (videoMetaElement) videoMetaElement.textContent = `${video.views}${viewsSuffix} • ${video.uploadTime}`;
+            if (videoDescriptionElement) videoDescriptionElement.textContent = video.description;
+
+            // Reset like/dislike counts for new video (simple demo)
+            const likeCountElement = document.getElementById('like-count');
+            const dislikeCountElement = document.getElementById('dislike-count');
+            if (likeCountElement) likeCountElement.textContent = Math.floor(Math.random() * 1000) + 'K';
+            if (dislikeCountElement) dislikeCountElement.textContent = Math.floor(Math.random() * 100) + 'K';
+
+        } else {
+            if (videoElement) {
+                videoElement.src = ''; // Clear video source
+                videoElement.pause();
+                videoElement.innerHTML = `<source src="" type="video/mp4">`; // Clear sources
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+            if (videoTitleElement) videoTitleElement.textContent = await fetchTranslation(currentLang, 'video_not_found'); // Use translated message
+            if (channelAvatarElement) channelAvatarElement.textContent = '';
+            if (channelNameElement) channelNameElement.textContent = '';
+            if (channelSubscribersElement) channelSubscribersElement.textContent = '';
+            if (videoMetaElement) videoMetaElement.textContent = '';
+            if (videoDescriptionElement) videoDescriptionElement.textContent = '';
+            console.error(`Video with ID ${videoId} not found.`);
+        }
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('show'); // 隱藏載入遮罩
+        }
+    }
+
+    /**
+     * Renders related videos in the sidebar.
+     * @param {string} currentVideoId - The ID of the currently playing video to exclude.
+     */
+    async function renderRelatedVideos(currentVideoId) {
+        if (relatedVideosGrid) { // Added null check
+            relatedVideosGrid.innerHTML = ''; // Clear existing content
+            const filteredVideos = videos.filter(v => v.id !== currentVideoId);
+            const shuffled = [...filteredVideos].sort(() => 0.5 - Math.random());
+            const videosToDisplay = shuffled.slice(0, 6); // Display up to 6 related videos
+
+            for (const video of videosToDisplay) {
+                const card = await createVideoCard(video);
+                relatedVideosGrid.appendChild(card);
+            }
+        } else {
+            console.error("Related videos grid element not found. Cannot render related videos.");
         }
     }
 
@@ -269,86 +547,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         return videoCard;
     }
 
-    /**
-     * Loads details for a specific video and updates the player.
-     * @param {string} videoId - The ID of the video to load.
-     */
-    async function loadVideoDetails(videoId) {
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('show'); // 顯示載入遮罩
-        }
-        const video = videos.find(v => v.id === videoId);
-
-        if (video) {
-            if (videoPlayerContainer) {
-                videoPlayerContainer.innerHTML = `
-                    <iframe src="https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen>
-                    </iframe>
-                `;
-            }
-            if (videoTitleElement) videoTitleElement.textContent = video.title;
-            if (channelAvatarElement) channelAvatarElement.textContent = video.channel.charAt(0).toUpperCase();
-            if (channelNameElement) {
-                channelNameElement.textContent = video.channel;
-                if (video.isVerified) {
-                    const verifiedIcon = document.createElement('i');
-                    verifiedIcon.className = 'fas fa-check-circle text-blue-400 ml-2';
-                    channelNameElement.appendChild(verifiedIcon);
-                }
-            }
-
-            // No subscribers data in videos.js, so hardcode or remove if not needed
-            // const subscribersSuffix = await fetchTranslation(currentLang, 'subscribers_suffix');
-            if (channelSubscribersElement) channelSubscribersElement.textContent = `1.2M subscribers`; // Hardcoded for demo
-
-            const viewsSuffix = await fetchTranslation(currentLang, 'views_suffix');
-            if (videoMetaElement) videoMetaElement.textContent = `${video.views}${viewsSuffix} • ${video.uploadTime}`;
-            if (videoDescriptionElement) videoDescriptionElement.textContent = video.description;
-
-            // Reset like/dislike counts for new video (simple demo)
-            const likeCountElement = document.getElementById('like-count');
-            const dislikeCountElement = document.getElementById('dislike-count');
-            if (likeCountElement) likeCountElement.textContent = Math.floor(Math.random() * 1000) + 'K';
-            if (dislikeCountElement) dislikeCountElement.textContent = Math.floor(Math.random() * 100) + 'K';
-
-        } else {
-            if (videoPlayerContainer) {
-                videoPlayerContainer.innerHTML = `<div class="flex items-center justify-center h-full text-red-500" data-i18n-key="video_not_found">Video not found.</div>`;
-            }
-            if (videoTitleElement) videoTitleElement.textContent = '';
-            if (channelAvatarElement) channelAvatarElement.textContent = '';
-            if (channelNameElement) channelNameElement.textContent = '';
-            if (channelSubscribersElement) channelSubscribersElement.textContent = '';
-            if (videoMetaElement) videoMetaElement.textContent = '';
-            if (videoDescriptionElement) videoDescriptionElement.textContent = '';
-            console.error(`Video with ID ${videoId} not found.`);
-        }
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('show'); // 隱藏載入遮罩
-        }
-    }
-
-    /**
-     * Renders related videos in the sidebar.
-     * @param {string} currentVideoId - The ID of the currently playing video to exclude.
-     */
-    async function renderRelatedVideos(currentVideoId) {
-        if (relatedVideosGrid) { // Added null check
-            relatedVideosGrid.innerHTML = ''; // Clear existing content
-            const filteredVideos = videos.filter(v => v.id !== currentVideoId);
-            const shuffled = [...filteredVideos].sort(() => 0.5 - Math.random());
-            const videosToDisplay = shuffled.slice(0, 6); // Display up to 6 related videos
-
-            for (const video of videosToDisplay) {
-                const card = await createVideoCard(video);
-                relatedVideosGrid.appendChild(card);
-            }
-        } else {
-            console.error("Related videos grid element not found. Cannot render related videos.");
-        }
-    }
 
     // Interaction button click handlers
     if (likeButton) {
@@ -463,7 +661,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initial load of a default video and related videos
     const urlParams = new URLSearchParams(window.location.search);
     const videoIdFromUrl = urlParams.get('id');
-    const initialVideoId = videoIdFromUrl || 'dQw4w9WgXcQ'; // Use ID from URL or default
+    const initialVideoId = videoIdFromUrl || videos[0].id; // Use ID from URL or default to first video
 
     await loadVideoDetails(initialVideoId);
     await renderRelatedVideos(initialVideoId);
