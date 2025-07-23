@@ -362,6 +362,7 @@ body {
     overflow: hidden;
     border-radius: 0.75rem; /* 圓角 */
     background-color: #000; /* 黑色背景 */
+    /* 移除 max-height: auto; 依賴 padding-bottom 確保長寬比 */
 }
 
 /* 移除預設的影片控制欄 */

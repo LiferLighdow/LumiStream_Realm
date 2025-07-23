@@ -461,11 +461,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Hide loading overlay and then play the video
         if (loadingOverlay) {
-            loadingOverlay.classList.remove('show');
-            // Only play if a video was found and loaded
+            // Add a one-time event listener for when the transition ends
+            const handleTransitionEnd = () => {
+                loadingOverlay.removeEventListener('transitionend', handleTransitionEnd); // Remove listener
+                // Only play if a video was found and loaded
+                if (video && videoElement) {
+                    videoElement.play();
+                    playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Ensure play icon is updated
+                }
+            };
+            loadingOverlay.addEventListener('transitionend', handleTransitionEnd);
+            loadingOverlay.classList.remove('show'); // Trigger the transition
+        } else {
+            // Fallback if loadingOverlay doesn't exist (shouldn't happen with current setup)
             if (video && videoElement) {
                 videoElement.play();
-                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>'; // Ensure play icon is updated
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
             }
         }
     }
